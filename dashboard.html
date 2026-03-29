@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PayFlow Dashboard — Manage your subscription, view payment history, and control your billing settings.">
+    <title>PayFlow — Dashboard</title>
+    <link rel="stylesheet" href="index.css">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+
+    <div class="bg-mesh"></div>
+
+    <div class="dashboard-layout">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="index.html" class="sidebar-logo">
+                <div class="nav-logo-icon">⚡</div>
+                PayFlow
+            </a>
+            <ul class="sidebar-nav">
+                <li><a href="#" class="active" data-section="section-overview"><span class="nav-icon">📊</span> Overview</a></li>
+                <li><a href="#" data-section="section-billing"><span class="nav-icon">💳</span> Billing</a></li>
+                <li><a href="#" data-section="section-notifications"><span class="nav-icon">📧</span> Notifications</a></li>
+                <li><a href="#" data-section="section-webhooks"><span class="nav-icon">🔗</span> Webhooks Log</a></li>
+                <li><a href="#" data-section="section-settings"><span class="nav-icon">⚙️</span> Settings</a></li>
+            </ul>
+            <div style="margin-top: auto; padding: 12px;">
+                <a href="index.html" style="font-size: 0.8rem; color: var(--text-muted);">← Back to Home</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+
+            <!-- Header -->
+            <div class="dash-header">
+                <h1 id="page-title">Overview</h1>
+                <div class="dash-user">
+                    <span style="font-size: 0.85rem; color: var(--text-secondary);">Welcome back</span>
+                    <div class="dash-avatar">JP</div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════ -->
+            <!-- SECTION: Overview                   -->
+            <!-- ═══════════════════════════════════ -->
+            <div class="dash-section active" id="section-overview">
+
+                <!-- Stats -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-label">Active Plan</div>
+                        <div class="stat-value" style="font-size: 1.3rem;" id="stat-plan-name">Pro</div>
+                        <div class="stat-change up" id="stat-plan-status">● Active</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Paid</div>
+                        <div class="stat-value">₹5,800</div>
+                        <div class="stat-change up">↑ 2 invoices</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Next Billing</div>
+                        <div class="stat-value" style="font-size: 1.3rem;">Apr 28</div>
+                        <div class="stat-change" style="color: var(--text-muted);">In 30 days</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Webhooks Processed</div>
+                        <div class="stat-value">114</div>
+                        <div class="stat-change up">↑ 12 today</div>
+                    </div>
+                </div>
+
+                <!-- Current Plan -->
+                <div class="plan-card">
+                    <div class="plan-info">
+                        <div class="plan-tier-badge badge-pro" id="plan-badge">💎 Pro Plan</div>
+                        <h3 id="plan-title">Pro — ₹29/month</h3>
+                        <p>Your subscription renews on April 28, 2026. Manage your plan below.</p>
+                    </div>
+                    <div class="plan-actions">
+                        <a href="index.html#pricing" class="btn-primary" style="font-size: 0.85rem; padding: 10px 20px;">Upgrade Plan</a>
+                        <button class="btn-secondary" style="font-size: 0.85rem; padding: 10px 20px;" id="btn-cancel-sub">Cancel Subscription</button>
+                    </div>
+                </div>
+
+                <!-- Payment History (Quick View) -->
+                <div class="data-table-wrap">
+                    <div class="data-table-header">
+                        <h3>Recent Payments</h3>
+                        <button class="btn-secondary" style="font-size: 0.75rem; padding: 6px 14px; border-radius: 6px;" onclick="switchSection('section-billing')">View All →</button>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Mar 28, 2026</td>
+                                <td>Pro Plan — Monthly</td>
+                                <td>₹2,900</td>
+                                <td><span class="status-pill status-success">● Succeeded</span></td>
+                            </tr>
+                            <tr>
+                                <td>Feb 28, 2026</td>
+                                <td>Pro Plan — Monthly</td>
+                                <td>₹2,900</td>
+                                <td><span class="status-pill status-success">● Succeeded</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════ -->
+            <!-- SECTION: Billing                    -->
+            <!-- ═══════════════════════════════════ -->
+            <div class="dash-section" id="section-billing">
+
+                <!-- Current Plan Card -->
+                <div class="plan-card" style="margin-bottom: 24px;">
+                    <div class="plan-info">
+                        <div class="plan-tier-badge badge-pro">💎 Pro Plan</div>
+                        <h3>Pro — ₹29/month</h3>
+                        <p>Billing cycle: Monthly • Next charge: April 28, 2026</p>
+                    </div>
+                    <div class="plan-actions">
+                        <button class="btn-primary" style="font-size: 0.85rem; padding: 10px 20px;" onclick="handleQuickPay(2900, 'Pro')">Pay Now ₹29</button>
+                        <a href="index.html#pricing" class="btn-secondary" style="font-size: 0.85rem; padding: 10px 20px; text-align: center;">Change Plan</a>
+                    </div>
+                </div>
+
+                <!-- Full Payment History -->
+                <div class="data-table-wrap">
+                    <div class="data-table-header">
+                        <h3>Payment History</h3>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">All transactions</span>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Invoice</th>
+                            </tr>
+                        </thead>
+                        <tbody id="payment-history-body">
+                            <tr>
+                                <td>Mar 28, 2026</td>
+                                <td>Pro Plan — Monthly</td>
+                                <td>₹2,900</td>
+                                <td><span class="status-pill status-success">● Succeeded</span></td>
+                                <td><button class="invoice-btn" onclick="viewInvoice('INV-2026-003', 2900, 'Mar 28, 2026', 'Pro Plan')">View →</button></td>
+                            </tr>
+                            <tr>
+                                <td>Feb 28, 2026</td>
+                                <td>Pro Plan — Monthly</td>
+                                <td>₹2,900</td>
+                                <td><span class="status-pill status-success">● Succeeded</span></td>
+                                <td><button class="invoice-btn" onclick="viewInvoice('INV-2026-002', 2900, 'Feb 28, 2026', 'Pro Plan')">View →</button></td>
+                            </tr>
+                            <tr>
+                                <td>Jan 28, 2026</td>
+                                <td>Basic Plan — Monthly</td>
+                                <td>₹900</td>
+                                <td><span class="status-pill status-success">● Succeeded</span></td>
+                                <td><button class="invoice-btn" onclick="viewInvoice('INV-2026-001', 900, 'Jan 28, 2026', 'Basic Plan')">View →</button></td>
+                            </tr>
+                            <tr>
+                                <td>Dec 28, 2025</td>
+                                <td>Basic Plan — Monthly</td>
+                                <td>₹900</td>
+                                <td><span class="status-pill status-failed">● Failed</span></td>
+                                <td><span style="color: var(--text-muted); font-size: 0.8rem;">—</span></td>
+                            </tr>
+                            <tr>
+                                <td>Nov 28, 2025</td>
+                                <td>Basic Plan — Monthly</td>
+                                <td>₹900</td>
+                                <td><span class="status-pill status-success">● Succeeded</span></td>
+                                <td><button class="invoice-btn" onclick="viewInvoice('INV-2025-011', 900, 'Nov 28, 2025', 'Basic Plan')">View →</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════ -->
+            <!-- SECTION: Notifications              -->
+            <!-- ═══════════════════════════════════ -->
+            <div class="dash-section" id="section-notifications">
+
+                <div class="stats-row" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="stat-card">
+                        <div class="stat-label">Emails Sent</div>
+                        <div class="stat-value">17</div>
+                        <div class="stat-change up">All delivered</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Receipts</div>
+                        <div class="stat-value">12</div>
+                        <div class="stat-change" style="color: var(--text-muted);">Auto-generated</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Alerts</div>
+                        <div class="stat-value">5</div>
+                        <div class="stat-change down">2 payment failures</div>
+                    </div>
+                </div>
+
+                <div class="data-table-wrap">
+                    <div class="data-table-header">
+                        <h3>Notification Log</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="filter-btn active" data-filter="all" onclick="filterNotifications('all', this)">All</button>
+                            <button class="filter-btn" data-filter="receipt" onclick="filterNotifications('receipt', this)">Receipts</button>
+                            <button class="filter-btn" data-filter="warning" onclick="filterNotifications('warning', this)">Warnings</button>
+                        </div>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Sent At</th>
+                                <th>Type</th>
+                                <th>Subject</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="notifications-body">
+                            <tr data-type="receipt">
+                                <td>Mar 28, 2026</td>
+                                <td><span class="status-pill status-success">Receipt</span></td>
+                                <td>Payment receipt for ₹2,900 — Pro Plan</td>
+                                <td><span style="color: var(--accent-emerald); font-size: 0.8rem;">✓ Delivered</span></td>
+                            </tr>
+                            <tr data-type="receipt">
+                                <td>Feb 28, 2026</td>
+                                <td><span class="status-pill status-success">Receipt</span></td>
+                                <td>Payment receipt for ₹2,900 — Pro Plan</td>
+                                <td><span style="color: var(--accent-emerald); font-size: 0.8rem;">✓ Delivered</span></td>
+                            </tr>
+                            <tr data-type="warning">
+                                <td>Dec 28, 2025</td>
+                                <td><span class="status-pill status-failed">Warning</span></td>
+                                <td>Payment failed for Basic Plan — please update card</td>
+                                <td><span style="color: var(--accent-emerald); font-size: 0.8rem;">✓ Delivered</span></td>
+                            </tr>
+                            <tr data-type="receipt">
+                                <td>Nov 28, 2025</td>
+                                <td><span class="status-pill status-success">Receipt</span></td>
+                                <td>Payment receipt for ₹900 — Basic Plan</td>
+                                <td><span style="color: var(--accent-emerald); font-size: 0.8rem;">✓ Delivered</span></td>
+                            </tr>
+                            <tr data-type="warning">
+                                <td>Oct 15, 2025</td>
+                                <td><span class="status-pill status-pending">Reminder</span></td>
+                                <td>Your subscription renews in 3 days</td>
+                                <td><span style="color: var(--accent-emerald); font-size: 0.8rem;">✓ Delivered</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════ -->
+            <!-- SECTION: Webhooks Log               -->
+            <!-- ═══════════════════════════════════ -->
+            <div class="dash-section" id="section-webhooks">
+
+                <div class="stats-row" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Events</div>
+                        <div class="stat-value">114</div>
+                        <div class="stat-change up">↑ 12 today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Completed</div>
+                        <div class="stat-value" style="color: var(--accent-emerald);">109</div>
+                        <div class="stat-change up">95.6% success</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Failed</div>
+                        <div class="stat-value" style="color: var(--accent-rose);">5</div>
+                        <div class="stat-change down">3 retried successfully</div>
+                    </div>
+                </div>
+
+                <div class="data-table-wrap">
+                    <div class="data-table-header">
+                        <h3>Webhook Events</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="filter-btn active" data-filter="all" onclick="filterWebhooks('all', this)">All</button>
+                            <button class="filter-btn" data-filter="completed" onclick="filterWebhooks('completed', this)">Completed</button>
+                            <button class="filter-btn" data-filter="failed" onclick="filterWebhooks('failed', this)">Failed</button>
+                        </div>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Event Type</th>
+                                <th>Event ID</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="webhooks-body">
+                            <tr data-wh-status="completed">
+                                <td>Mar 28, 12:14 PM</td>
+                                <td><code style="font-size: 0.8rem; padding: 2px 8px; background: var(--bg-card-hover); border-radius: 4px;">subscription.charged</code></td>
+                                <td style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">evt_NxR4k8mZ3p</td>
+                                <td><span class="status-pill status-success">● Completed</span></td>
+                                <td><button class="invoice-btn" onclick="showEventDetail('subscription.charged', 'evt_NxR4k8mZ3p', 'completed')">Details</button></td>
+                            </tr>
+                            <tr data-wh-status="completed">
+                                <td>Mar 28, 12:14 PM</td>
+                                <td><code style="font-size: 0.8rem; padding: 2px 8px; background: var(--bg-card-hover); border-radius: 4px;">payment.captured</code></td>
+                                <td style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">evt_QwT7j2nB5a</td>
+                                <td><span class="status-pill status-success">● Completed</span></td>
+                                <td><button class="invoice-btn" onclick="showEventDetail('payment.captured', 'evt_QwT7j2nB5a', 'completed')">Details</button></td>
+                            </tr>
+                            <tr data-wh-status="completed">
+                                <td>Feb 28, 11:02 AM</td>
+                                <td><code style="font-size: 0.8rem; padding: 2px 8px; background: var(--bg-card-hover); border-radius: 4px;">subscription.charged</code></td>
+                                <td style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">evt_Lm9Xp4kR7c</td>
+                                <td><span class="status-pill status-success">● Completed</span></td>
+                                <td><button class="invoice-btn" onclick="showEventDetail('subscription.charged', 'evt_Lm9Xp4kR7c', 'completed')">Details</button></td>
+                            </tr>
+                            <tr data-wh-status="completed">
+                                <td>Jan 15, 03:22 PM</td>
+                                <td><code style="font-size: 0.8rem; padding: 2px 8px; background: var(--bg-card-hover); border-radius: 4px;">subscription.activated</code></td>
+                                <td style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">evt_Ab3Cd5eF8g</td>
+                                <td><span class="status-pill status-success">● Completed</span></td>
+                                <td><button class="invoice-btn" onclick="showEventDetail('subscription.activated', 'evt_Ab3Cd5eF8g', 'completed')">Details</button></td>
+                            </tr>
+                            <tr data-wh-status="failed">
+                                <td>Dec 28, 09:45 AM</td>
+                                <td><code style="font-size: 0.8rem; padding: 2px 8px; background: var(--bg-card-hover); border-radius: 4px;">payment.failed</code></td>
+                                <td style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">evt_Zx1Yw9vU2t</td>
+                                <td><span class="status-pill status-failed">● Failed</span></td>
+                                <td><button class="invoice-btn" onclick="retryWebhook('evt_Zx1Yw9vU2t', this)">Retry</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════ -->
+            <!-- SECTION: Settings                   -->
+            <!-- ═══════════════════════════════════ -->
+            <div class="dash-section" id="section-settings">
+
+                <!-- Profile Settings -->
+                <div class="settings-card">
+                    <h3 class="settings-card-title">Profile Information</h3>
+                    <p class="settings-card-desc">Update your account details below.</p>
+                    <div class="settings-form">
+                        <div class="form-group">
+                            <label for="settings-name">Full Name</label>
+                            <input type="text" id="settings-name" value="Jalp Pansuriya" placeholder="Your name">
+                        </div>
+                        <div class="form-group">
+                            <label for="settings-email">Email Address</label>
+                            <input type="email" id="settings-email" value="jalp@example.com" placeholder="you@example.com">
+                        </div>
+                        <button class="btn-primary" style="font-size: 0.85rem; padding: 10px 24px; margin-top: 8px;" id="btn-save-profile" onclick="saveProfile()">Save Changes</button>
+                    </div>
+                </div>
+
+                <!-- Email Preferences -->
+                <div class="settings-card">
+                    <h3 class="settings-card-title">Email Notifications</h3>
+                    <p class="settings-card-desc">Control which emails you receive.</p>
+                    <div class="settings-toggles">
+                        <div class="settings-toggle-row">
+                            <div>
+                                <strong>Payment Receipts</strong>
+                                <p style="font-size: 0.8rem; color: var(--text-muted);">Get a receipt after every successful payment.</p>
+                            </div>
+                            <label class="toggle-label">
+                                <input type="checkbox" checked id="toggle-receipts">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="settings-toggle-row">
+                            <div>
+                                <strong>Payment Failure Alerts</strong>
+                                <p style="font-size: 0.8rem; color: var(--text-muted);">Get notified when a charge fails.</p>
+                            </div>
+                            <label class="toggle-label">
+                                <input type="checkbox" checked id="toggle-failures">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="settings-toggle-row">
+                            <div>
+                                <strong>Renewal Reminders</strong>
+                                <p style="font-size: 0.8rem; color: var(--text-muted);">Remind me 3 days before renewal.</p>
+                            </div>
+                            <label class="toggle-label">
+                                <input type="checkbox" id="toggle-reminders">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Danger Zone -->
+                <div class="settings-card" style="border-color: rgba(244, 63, 94, 0.2);">
+                    <h3 class="settings-card-title" style="color: var(--accent-rose);">Danger Zone</h3>
+                    <p class="settings-card-desc">Irreversible actions — proceed with caution.</p>
+                    <div style="display: flex; gap: 12px; margin-top: 16px;">
+                        <button class="btn-danger" id="btn-cancel-settings" onclick="cancelSubscriptionFromSettings()">Cancel Subscription</button>
+                        <button class="btn-danger-outline" onclick="deleteAccount()">Delete Account</button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ═══════════════════════════════════ -->
+    <!-- Invoice Modal                       -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-content" id="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Invoice</h3>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Dynamically populated -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" style="font-size: 0.85rem; padding: 8px 20px;" onclick="closeModal()">Close</button>
+                <button class="btn-primary" style="font-size: 0.85rem; padding: 8px 20px;" onclick="downloadInvoice()">Download PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>

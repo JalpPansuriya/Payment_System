@@ -1,0 +1,117 @@
+WHAT YOU BUILT:
+Stripe ──
+webhook
+──
+▶
+ n8n 
+──
+queries
+──
+▶
+ 
+Supabase
+                     │                  (6 tables)
+                     │
+                     
+├
+──
+▶
+ 
+Mailtrap
+ (emails)
+                     │
+                     └──
+▶
+ Stripe API (reconciliation)
+3 WORKFLOWS IN n8n:
+1. Stripe 
+Webhook
+ Processor (main)
+   
+├
+──
+ 
+Receives
+ all Stripe events
+   
+├
+──
+ Checks 
+idempotency
+   
+├
+──
+ Routes to 6 handlers
+   
+├
+──
+ Updates database
+   └── Sends emails
+2. Retry Failed Events
+   
+├
+──
+ Runs every 10 minutes
+   
+├
+──
+ Finds failed 
+webhook
+ events
+   └── 
+Reprocesses
+ them (max 3 times)
+3. Daily Reconciliation
+   
+├
+──
+ 
+Runs
+ at 2 AM daily
+   
+├
+──
+ Compares DB with Stripe
+   
+├
+──
+ Fixes mismatches
+   └── Alerts admin
+6 TABLES IN SUPABASE:
+1. 
+users
+              (who your customers are)
+2. plans              (what you sell)
+3. 
+subscriptions
+      (who is paying for what)
+4. 
+webhook_events
+     (what Stripe told you)
+5. 
+payment_history
+    (money in and out)
+6. 
+notifications_
+log
+  (
+what emails you sent)
+6 EVENT HANDLERS:
+1. 
+checkout.session.completed
+    → new subscription
+2. 
+invoice.payment_succeeded
+     → payment received
+3. 
+invoice.payment_failed
+        → payment problem
+4. 
+customer.subscription.updated
+ → plan change or cancel
+5. 
+customer.subscription.deleted
+ → subscription ended
+6. 
+trial_will_end
+                → trial expiring soon

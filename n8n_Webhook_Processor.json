@@ -1,0 +1,164 @@
+{
+  "name": "1. Main Razorpay Webhook Processor",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "razorpay-webhook",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "name": "Razorpay Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM webhook_events WHERE provider_event_id = '{{$json.body.payload.payment.entity.id}}'"
+      },
+      "name": "Check Duplicate PG",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.length}}",
+              "operation": "equal",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "name": "Is New Event?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "webhook_events",
+        "columns": "provider_event_id, event_type, processing_status",
+        "dataMode": "define",
+        "values": {
+          "value": [
+            {
+              "name": "provider_event_id",
+              "value": "={{$node[\"Razorpay Webhook\"].json.body.payload.payment.entity.id}}"
+            },
+            {
+              "name": "event_type",
+              "value": "={{$node[\"Razorpay Webhook\"].json.body.event}}"
+            },
+            {
+              "name": "processing_status",
+              "value": "received"
+            }
+          ]
+        }
+      },
+      "name": "Log Event PG",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [850, 280]
+    },
+    {
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "rules": [
+            {
+              "outputKey": "activated",
+              "routingRules": {
+                "routingRules": [
+                  {
+                    "value1": "={{$node[\"Razorpay Webhook\"].json.body.event}}",
+                    "value2": "subscription.activated"
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "charged",
+              "routingRules": {
+                "routingRules": [
+                  {
+                    "value1": "={{$node[\"Razorpay Webhook\"].json.body.event}}",
+                    "value2": "subscription.charged"
+                  }
+                ]
+              }
+            },
+            {
+              "outputKey": "failed",
+              "routingRules": {
+                "routingRules": [
+                  {
+                    "value1": "={{$node[\"Razorpay Webhook\"].json.body.event}}",
+                    "value2": "payment.failed"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "name": "Route Event",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [1050, 280]
+    }
+  ],
+  "connections": {
+    "Razorpay Webhook": {
+      "main": [
+        [
+          {
+            "node": "Check Duplicate PG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Duplicate PG": {
+      "main": [
+        [
+          {
+            "node": "Is New Event?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is New Event?": {
+      "main": [
+        [
+          {
+            "node": "Log Event PG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Event PG": {
+      "main": [
+        [
+          {
+            "node": "Route Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

@@ -1,0 +1,403 @@
+n8n
+ Workflows You Will Need
+Razorpay
+ Subscription Processor
+You will need 3 main workflows.
+1. Main Workflow — 
+Razorpay
+ 
+Webhook
+ Processor
+Purpose
+This is the main workflow.
+It handles all incoming 
+Razorpay
+ 
+webhook
+ events.
+What it does
+text
+Razorpay
+ sends 
+webhook
+→ 
+n8n
+ receives it
+→ returns 200 quickly
+→ checks if event already processed
+→ logs the event
+→ routes by event type
+→ runs correct handler
+→ updates database
+→ sends email
+→ marks event as completed or failed
+Events this workflow handles
+subscription.activated
+subscription.charged
+subscription.pending
+subscription.halted
+subscription.cancelled
+payment.authorized
+payment.captured
+payment.failed
+Main sections inside this workflow
+A. 
+Webhook
+ receive
+Webhook
+ node
+Respond to 
+Webhook
+ node
+B. Event safety
+Extract event data
+Check duplicate event in 
+Supabase
+Log new event in 
+webhook_events
+C. Event routing
+Switch node based on 
+event_type
+D. Event handlers
+Each event gets its own branch.
+Branches inside this workflow
+Branch 1 — 
+subscription.activated
+Use when a new subscription becomes active.
+Actions:
+create/find
+ user
+find
+ plan
+create
+ subscription
+update
+ user tier
+send
+ welcome email
+log
+ notification
+mark
+ event complete
+Branch 2 — 
+subscription.charged
+Use when recurring charge succeeds.
+Actions:
+find
+ user
+find
+ subscription
+record
+ payment
+keep
+ status active
+update
+ billing period if available
+send
+ receipt email
+mark
+ complete
+Branch 3 — 
+payment.failed
+Use when payment fails.
+Actions:
+find
+ user
+find
+ subscription
+record
+ failed payment
+update
+ subscription status
+send
+ warning email
+mark
+ complete
+Branch 4 — 
+subscription.pending
+Use when subscription is pending.
+Actions:
+update
+ subscription status to pending
+log
+ it
+optionally
+ send email
+mark
+ complete
+Branch 5 — 
+subscription.halted
+Use when billing problem halts the subscription.
+Actions:
+update
+ status to halted
+optionally
+ downgrade access
+send
+ warning email
+mark
+ complete
+Branch 6 — 
+subscription.cancelled
+Use when subscription ends.
+Actions:
+set
+ subscription to 
+canceled
+set
+ 
+canceled_at
+downgrade
+ user to free tier
+send
+ cancellation email
+mark
+ complete
+Branch 7 — 
+payment.authorized
+ / 
+payment.captured
+Optional supporting branches.
+Actions:
+log
+ payment state
+update
+ payment row if needed
+2. Retry Workflow — Retry Failed Events
+Purpose
+If any 
+webhook
+ fails during processing, this workflow retries it.
+Why you need it
+Sometimes:
+DB query fails
+email
+ node fails
+wrong
+ data path breaks a branch
+network
+ issue happens
+You do not want those events lost.
+What it does
+text
+Every 10 minutes
+→ get failed 
+webhook
+ events from 
+Supabase
+→ retry them one by one
+→ 
+if
+ retry succeeds, mark complete
+→ 
+if
+ too many retries, mark permanently failed
+Main parts
+A. Schedule trigger
+Runs every 10 minutes
+B. Fetch failed events
+Gets rows from 
+webhook_events
+where
+ status = failed
+C. Loop through events
+Handles one failed event at a time
+D. Retry logic
+Either:
+resend
+ event to main workflow
+or
+re-run
+ matching logic internally
+E. Update status
+completed
+ if fixed
+permanently_failed
+ if retry limit reached
+3. Reconciliation Workflow — Daily Sync Check
+Purpose
+Makes sure 
+Supabase
+ and 
+Razorpay
+ match.
+Why you need it
+Sometimes:
+webhook
+ may be missed
+webhook
+ may fail
+data
+ may not update correctly
+manual
+ DB change may cause mismatch
+This workflow fixes that.
+What it does
+text
+Every day
+→ get active subscriptions from 
+Supabase
+→ 
+call
+ 
+Razorpay
+ API
+→ compare current status
+→ 
+if
+ mismatch found, update DB
+→ 
+send
+ admin alert
+Main parts
+A. Schedule trigger
+Runs once daily
+B. Get subscriptions
+Fetch active / pending / halted subscriptions from 
+Supabase
+C. Call 
+Razorpay
+ API
+Use HTTP Request node to get latest subscription state
+D. Compare
+Compare 
+Razorpay
+ response with 
+Supabase
+ row
+E. Fix mismatch
+Update DB if wrong
+F. Notify admin
+Optional email to yourself
+Are these 3 enough?
+Yes
+These 3 are enough for a very solid project.
+text
+1. Main 
+Webhook
+ Processor
+2. Retry Failed Events
+3. Daily Reconciliation
+Optional Extra Workflows
+These are not required, but nice if you have time.
+4. Admin Alert Workflow
+If a critical failure happens:
+send
+ email to admin
+or
+ send Slack message
+5. Manual Reprocess Workflow
+A workflow where you manually input an event ID and retry it
+6. Test Event Workflow
+A helper workflow for testing mock data
+But these are optional.
+How the 3 workflows connect
+text
+                ┌──────────────────────────┐
+                │ 1. Main 
+Webhook
+ Processor│
+                │ receives 
+Razorpay
+ events │
+                └─────────────
+┬
+────────────┘
+                              │
+                   
+success
+    │    failure
+                              │
+                              
+▼
+                ┌──────────────────────────┐
+                
+│  
+webhook
+_events
+ table    │
+                │ completed / failed       │
+                └───────
+┬
+───────────
+┬
+──────┘
+                        │           │
+                        │           │
+                        
+▼
+           
+▼
+        ┌────────────────────┐   ┌─────────────────────┐
+        │2. Retry Workflow   │   │3. Reconciliation    │
+        │retries failed      │   │daily sync with      │
+        │events              │   │
+Razorpay
+ API         │
+        └────────────────────┘   └─────────────────────┘
+What tables these workflows use
+Main Workflow uses
+users
+plans
+subscriptions
+webhook_events
+payment_history
+notifications_log
+Retry Workflow uses
+webhook_events
+Reconciliation Workflow uses
+subscriptions
+users
+plans
+webhook_events
+ (optional for logging)
+Simplest way to think about them
+Workflow 1
+React to events
+Workflow 2
+Fix failed processing
+Workflow 3
+Fix missed or mismatched data
+Final workflow checklist
+Main 
+Webhook
+ Processor
+ 
+Webhook
+ node
+ Respond to 
+Webhook
+ Extract event data
+ Duplicate check
+ Event logger
+ Switch node
+ 
+event
+ branches
+Retry Failed Events
+ Schedule trigger
+ 
+fetch
+ failed events
+ 
+retry
+ loop
+ 
+update
+ retry status
+Reconciliation
+ Schedule trigger
+ 
+fetch
+ active subscriptions
+ 
+call
+ 
+Razorpay
+ API
+ 
+compare
+ state
+ 
+update
+ DB if mismatch
