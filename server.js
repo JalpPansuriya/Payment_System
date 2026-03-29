@@ -27,10 +27,15 @@ const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET;
 // If n8n cloud: https://your-instance.app.n8n.cloud/webhook/razorpay-webhook
 const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL;
 
-const razorpay = new Razorpay({
-  key_id: RAZORPAY_KEY_ID,
-  key_secret: RAZORPAY_KEY_SECRET,
-});
+let razorpay;
+if (RAZORPAY_KEY_ID && RAZORPAY_KEY_SECRET) {
+  razorpay = new Razorpay({
+    key_id: RAZORPAY_KEY_ID,
+    key_secret: RAZORPAY_KEY_SECRET,
+  });
+} else {
+  console.warn('⚠️ Razorpay keys are missing. Payment APIs will fail.');
+}
 
 // ─── MIDDLEWARE ──────────────────────────────
 app.use(cors());
@@ -63,6 +68,10 @@ app.post('/api/create-order', async (req, res) => {
         billing_cycle: billing_cycle || 'monthly',
       },
     };
+
+    if (!razorpay) {
+      return res.status(500).json({ error: 'Razorpay keys not configured on server (Vercel Env Variables).' });
+    }
 
     const order = await razorpay.orders.create(options);
     console.log(`✅ Order created: ${order.id} | ₹${amount / 100} | ${plan}`);
