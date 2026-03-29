@@ -187,17 +187,22 @@ app.get('/api/health', (req, res) => {
 });
 
 // ─── START SERVER ────────────────────────────
-app.listen(PORT, '0.0.0.0', () => {
-  console.log('');
-  console.log('  ⚡ PayFlow server running!');
-  console.log(`  → http://localhost:${PORT}`);
-  console.log(`  → http://127.0.0.1:${PORT}`);
-  console.log('');
-  console.log('  📡 Razorpay Webhook endpoint:');
-  console.log(`  → POST http://localhost:${PORT}/api/razorpay-webhook`);
-  console.log('');
-  console.log('  🔗 n8n relay target:');
-  console.log(`  → ${N8N_WEBHOOK_URL}`);
-  console.log('');
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log('');
+    console.log('  ⚡ PayFlow server running locally!');
+    console.log(`  → http://localhost:${PORT}`);
+    console.log(`  → http://127.0.0.1:${PORT}`);
+    console.log('');
+    console.log('  📡 Razorpay Webhook endpoint:');
+    console.log(`  → POST http://localhost:${PORT}/api/razorpay-webhook`);
+    console.log('');
+    console.log('  🔗 n8n relay target:');
+    console.log(`  → ${N8N_WEBHOOK_URL}`);
+    console.log('');
+  });
+}
+
+// Export the Express app for serverless platforms like Vercel
+module.exports = app;
 
