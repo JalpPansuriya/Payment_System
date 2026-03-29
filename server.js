@@ -187,7 +187,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // ─── START SERVER ────────────────────────────
-if (process.env.NODE_ENV !== 'production') {
+if (require.main === module) {
   app.listen(PORT, '0.0.0.0', () => {
     console.log('');
     console.log('  ⚡ PayFlow server running locally!');
